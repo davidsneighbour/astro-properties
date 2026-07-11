@@ -5,6 +5,7 @@ import Gallery from "@davidsneighbour/astro-properties/components/Gallery.astro"
 import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
 import PropertyMap from "@davidsneighbour/astro-properties/components/PropertyMap.astro";
 import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
+import StructuredData from "@davidsneighbour/astro-properties/components/StructuredData.astro";
 import "../../styles/global.css";
 import { getCollection, getEntry, render } from "astro:content";
 
@@ -30,6 +31,14 @@ const galleryImages = entry.data.gallery.map((image) => ({
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{entry.data.title} — Astro Properties demo</title>
+    <StructuredData
+      title={entry.data.title}
+      url={Astro.url.href}
+      images={galleryImages.map((image) => image.src)}
+      price={entry.data.price}
+      location={entry.data.location}
+      agentName={agent?.data.name}
+    />
   </head>
   <body class="mx-auto max-w-3xl px-4 py-8">
     <a href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>

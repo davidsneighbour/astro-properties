@@ -1,0 +1,9 @@
+---
+import { buildRealEstateListing, type RealEstateListingInput } from "../lib/structured-data.js";
+
+type Props = RealEstateListingInput;
+
+const listing = buildRealEstateListing(Astro.props);
+---
+
+<script type="application/ld+json" set:html={JSON.stringify(listing)} />
