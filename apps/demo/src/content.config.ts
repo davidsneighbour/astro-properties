@@ -1,5 +1,8 @@
 import { defineCollection } from "astro:content";
-import { definePropertySchema } from "@davidsneighbour/astro-properties/content-schema";
+import {
+  defineDevelopmentSchema,
+  definePropertySchema,
+} from "@davidsneighbour/astro-properties/content-schema";
 import { tomlLoader } from "@davidsneighbour/astro-properties/lib/toml-loader.js";
 import {
   agencySchema,
@@ -28,4 +31,15 @@ const offices = defineCollection({
   schema: officeSchema,
 });
 
-export const collections = { properties, agents, agencies, offices };
+const developments = defineCollection({
+  loader: glob({ pattern: "**/*.mdx", base: "./src/content/developments" }),
+  schema: defineDevelopmentSchema,
+});
+
+export const collections = {
+  properties,
+  agents,
+  agencies,
+  offices,
+  developments,
+};
