@@ -13,7 +13,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "html", "lcov"],
-      include: ["src/components/**/*.tsx"],
+      include: ["src/components/**/*.tsx", "src/lib/**/*.ts"],
       thresholds: {
         lines: 80,
         branches: 80,

@@ -26,7 +26,13 @@ const { title, listings, class: className } = Astro.props;
     >
       {
         listings.map((listing) => (
-          <div class="relative" data-listing-card>
+          <div
+            class="relative"
+            data-listing-card
+            data-filter-type={listing.type}
+            data-filter-price={listing.price.onRequest ? "" : (listing.price.amount ?? "")}
+            data-filter-beds={listing.bedrooms ?? ""}
+          >
             <span data-pagefind-filter={`type:${listing.type}`} class="hidden" />
             <span data-pagefind-filter={`status:${listing.status}`} class="hidden" />
             <span data-pagefind-filter={`category:${listing.category}`} class="hidden" />

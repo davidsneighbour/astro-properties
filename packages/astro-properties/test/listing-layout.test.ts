@@ -82,6 +82,46 @@ describe("ListingLayout", () => {
     expect(result).toContain('data-pagefind-filter="category:student"');
   });
 
+  it("adds data-filter-type/price/beds attributes for the pre-Pagefind filter", async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(ListingLayout, {
+      props: {
+        title: "All listings",
+        listings: [
+          listing({ type: "condominium", bedrooms: 2, price: price(1200) }),
+        ],
+      },
+    });
+
+    expect(result).toContain('data-filter-type="condominium"');
+    expect(result).toContain('data-filter-price="1200"');
+    expect(result).toContain('data-filter-beds="2"');
+  });
+
+  it("leaves data-filter-price empty for an onRequest listing", async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(ListingLayout, {
+      props: {
+        title: "All listings",
+        listings: [listing({ price: { currency: "USD", onRequest: true } })],
+      },
+    });
+
+    expect(result).toMatch(/data-filter-price(?!=)/);
+  });
+
+  it("leaves data-filter-beds empty when bedrooms is not set", async () => {
+    const container = await AstroContainer.create();
+    const result = await container.renderToString(ListingLayout, {
+      props: {
+        title: "All listings",
+        listings: [listing({ bedrooms: undefined })],
+      },
+    });
+
+    expect(result).toMatch(/data-filter-beds(?!=)/);
+  });
+
   it("renders the page title", async () => {
     const container = await AstroContainer.create();
     const result = await container.renderToString(ListingLayout, {
