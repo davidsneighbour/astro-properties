@@ -1,0 +1,58 @@
+---
+import AgentCard from "../components/AgentCard.astro";
+import AmenitiesList from "../components/AmenitiesList.astro";
+import Gallery from "../components/Gallery.astro";
+import PriceBadge from "../components/PriceBadge.astro";
+import PropertyMap from "../components/PropertyMap.astro";
+import SpecsBar from "../components/SpecsBar.astro";
+import StructuredData from "../components/StructuredData.astro";
+import type { PropertyDetail } from "./property-detail.js";
+
+interface Props extends PropertyDetail {
+  class?: string | undefined;
+}
+
+const {
+  title,
+  description,
+  url,
+  price,
+  bedrooms,
+  bathrooms,
+  areaSize,
+  areaUnit,
+  amenities,
+  location,
+  images,
+  agent,
+  class: className,
+} = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <StructuredData
+      title={title}
+      description={description}
+      url={url}
+      images={images.map((image) => image.src)}
+      price={price}
+      location={location}
+      agentName={agent?.name}
+    />
+  </head>
+  <body class:list={["property-detail", className]}>
+    <slot name="before" />
+    <Gallery images={images} class="my-4" />
+    <h1>{title}</h1>
+    <PriceBadge price={price} class="my-2" />
+    <SpecsBar bedrooms={bedrooms} bathrooms={bathrooms} areaSize={areaSize} areaUnit={areaUnit} />
+    <AmenitiesList amenities={amenities} class="my-4" />
+    <PropertyMap location={location} class="my-4" />
+    {agent && <AgentCard agent={agent} class="my-4" />}
+    <slot />
+  </body>
+</html>

@@ -1,11 +1,5 @@
 ---
-import AgentCard from "@davidsneighbour/astro-properties/components/AgentCard.astro";
-import AmenitiesList from "@davidsneighbour/astro-properties/components/AmenitiesList.astro";
-import Gallery from "@davidsneighbour/astro-properties/components/Gallery.astro";
-import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
-import PropertyMap from "@davidsneighbour/astro-properties/components/PropertyMap.astro";
-import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
-import StructuredData from "@davidsneighbour/astro-properties/components/StructuredData.astro";
+import PropertyLayout from "@davidsneighbour/astro-properties/layouts/PropertyLayout.astro";
 import "../../styles/global.css";
 import { getCollection, getEntry, render } from "astro:content";
 
@@ -20,42 +14,28 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const agent = entry.data.agent ? await getEntry(entry.data.agent) : undefined;
-const galleryImages = entry.data.gallery.map((image) => ({
+const images = entry.data.gallery.map((image) => ({
   src: image.src,
   alt: entry.data.title,
 }));
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{entry.data.title} — Astro Properties demo</title>
-    <StructuredData
-      title={entry.data.title}
-      url={Astro.url.href}
-      images={galleryImages.map((image) => image.src)}
-      price={entry.data.price}
-      location={entry.data.location}
-      agentName={agent?.data.name}
-    />
-  </head>
-  <body class="mx-auto max-w-3xl px-4 py-8">
-    <a href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
-    <Gallery images={galleryImages} class="my-4" />
-    <h1 class="text-2xl font-bold">{entry.data.title}</h1>
-    <PriceBadge price={entry.data.price} class="my-2" />
-    <SpecsBar
-      bedrooms={entry.data.bedrooms}
-      bathrooms={entry.data.bathrooms}
-      areaSize={entry.data.areaSize}
-      areaUnit={entry.data.areaUnit}
-    />
-    <AmenitiesList amenities={entry.data.amenities} class="my-4" />
-    <PropertyMap location={entry.data.location} class="my-4" />
-    {agent && <AgentCard agent={agent.data} class="my-4" />}
-    <div class="prose">
-      <Content />
-    </div>
-  </body>
-</html>
+<PropertyLayout
+  title={entry.data.title}
+  url={Astro.url.href}
+  price={entry.data.price}
+  bedrooms={entry.data.bedrooms}
+  bathrooms={entry.data.bathrooms}
+  areaSize={entry.data.areaSize}
+  areaUnit={entry.data.areaUnit}
+  amenities={entry.data.amenities}
+  location={entry.data.location}
+  images={images}
+  agent={agent?.data}
+  class="mx-auto max-w-3xl px-4 py-8"
+>
+  <a slot="before" href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
+  <div class="prose">
+    <Content />
+  </div>
+</PropertyLayout>
