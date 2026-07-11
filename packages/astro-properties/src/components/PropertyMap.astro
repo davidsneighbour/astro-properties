@@ -1,0 +1,60 @@
+---
+import { type MapProviderKey, getMapProvider } from "../lib/map-providers.js";
+import type { Location } from "../schema.js";
+
+interface Props {
+  location: Location;
+  provider?: MapProviderKey | undefined;
+  class?: string | undefined;
+}
+
+const { location, provider, class: className } = Astro.props;
+const tile = getMapProvider(provider);
+
+/** Approximate locations zoom out further so the marker's true position can't be pinpointed. */
+const zoom = location.hideExact ? Math.max(1, location.zoom - 4) : location.zoom;
+
+const mapId = `property-map-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<div
+  id={mapId}
+  class:list={["property-map", "h-80 w-full rounded-lg", className]}
+  data-property-map
+  data-lat={location.lat}
+  data-lng={location.lng}
+  data-zoom={zoom}
+  data-tile-url={tile.tileUrl}
+  data-attribution={tile.attribution}
+  data-hide-exact={location.hideExact ? "true" : "false"}
+>
+</div>
+
+<script>
+  import L from "leaflet";
+  import "leaflet/dist/leaflet.css";
+
+  function initMap(el: HTMLElement) {
+    const lat = Number(el.dataset.lat);
+    const lng = Number(el.dataset.lng);
+    const zoom = Number(el.dataset.zoom);
+    const tileUrl = el.dataset.tileUrl ?? "";
+    const attribution = el.dataset.attribution ?? "";
+    const hideExact = el.dataset.hideExact === "true";
+
+    const map = L.map(el).setView([lat, lng], zoom);
+    L.tileLayer(tileUrl, { attribution }).addTo(map);
+
+    if (hideExact) {
+      L.circle([lat, lng], { radius: 500, color: "#3388ff", fillOpacity: 0.15 }).addTo(map);
+    } else {
+      L.circleMarker([lat, lng], { radius: 8, color: "#3388ff", fillOpacity: 0.8 }).addTo(map);
+    }
+  }
+
+  for (const el of document.querySelectorAll<HTMLElement>("[data-property-map]")) {
+    if (el.dataset.mapInitialized) continue;
+    el.dataset.mapInitialized = "true";
+    initMap(el);
+  }
+</script>

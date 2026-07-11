@@ -1,6 +1,7 @@
 ---
 import AmenitiesList from "@davidsneighbour/astro-properties/components/AmenitiesList.astro";
 import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
+import PropertyMap from "@davidsneighbour/astro-properties/components/PropertyMap.astro";
 import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
 import "../../styles/global.css";
 import { getCollection, render } from "astro:content";
@@ -39,6 +40,7 @@ const { Content } = await render(entry);
       areaUnit={entry.data.areaUnit}
     />
     <AmenitiesList amenities={entry.data.amenities} class="my-4" />
+    <PropertyMap location={entry.data.location} class="my-4" />
     <div class="prose">
       <Content />
     </div>
