@@ -1,0 +1,24 @@
+---
+import ListingLayout from "@davidsneighbour/astro-properties/layouts/ListingLayout.astro";
+import "../../styles/global.css";
+import { getCollection } from "astro:content";
+
+const properties = await getCollection("properties");
+const listings = properties.map((entry) => ({
+  href: `/properties/${entry.id}`,
+  title: entry.data.title,
+  price: entry.data.price,
+  coverImageSrc: entry.data.coverImage.src,
+  coverImageAlt: entry.data.title,
+  bedrooms: entry.data.bedrooms,
+  bathrooms: entry.data.bathrooms,
+  areaSize: entry.data.areaSize,
+  areaUnit: entry.data.areaUnit,
+  labels: entry.data.labels,
+  type: entry.data.type,
+  status: entry.data.status,
+  category: entry.data.category,
+}));
+---
+
+<ListingLayout title="All properties — Astro Properties demo" listings={listings} />

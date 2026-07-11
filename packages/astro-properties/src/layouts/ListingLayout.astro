@@ -1,0 +1,51 @@
+---
+import PropertyCard from "../components/PropertyCard.astro";
+import type { ListingCard } from "./listing-card.js";
+
+interface Props {
+  title: string;
+  listings: ListingCard[];
+  class?: string | undefined;
+}
+
+const { title, listings, class: className } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <slot name="intro" />
+    <div
+      data-pagefind-body
+      class:list={["listing-grid", "grid grid-cols-1 gap-6 sm:grid-cols-2", className]}
+    >
+      {
+        listings.map((listing) => (
+          <div class="relative" data-listing-card>
+            <span data-pagefind-filter={`type:${listing.type}`} class="hidden" />
+            <span data-pagefind-filter={`status:${listing.status}`} class="hidden" />
+            <span data-pagefind-filter={`category:${listing.category}`} class="hidden" />
+            <PropertyCard
+              href={listing.href}
+              title={listing.title}
+              price={listing.price}
+              coverImageSrc={listing.coverImageSrc}
+              coverImageAlt={listing.coverImageAlt}
+              bedrooms={listing.bedrooms}
+              bathrooms={listing.bathrooms}
+              areaSize={listing.areaSize}
+              areaUnit={listing.areaUnit}
+              labels={listing.labels}
+            />
+          </div>
+        ))
+      }
+    </div>
+    <slot />
+  </body>
+</html>
