@@ -1,6 +1,7 @@
 ---
 import AgentCard from "@davidsneighbour/astro-properties/components/AgentCard.astro";
 import AmenitiesList from "@davidsneighbour/astro-properties/components/AmenitiesList.astro";
+import Gallery from "@davidsneighbour/astro-properties/components/Gallery.astro";
 import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
 import PropertyMap from "@davidsneighbour/astro-properties/components/PropertyMap.astro";
 import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
@@ -18,6 +19,10 @@ export async function getStaticPaths() {
 const { entry } = Astro.props;
 const { Content } = await render(entry);
 const agent = entry.data.agent ? await getEntry(entry.data.agent) : undefined;
+const galleryImages = entry.data.gallery.map((image) => ({
+  src: image.src,
+  alt: entry.data.title,
+}));
 ---
 
 <html lang="en">
@@ -28,11 +33,7 @@ const agent = entry.data.agent ? await getEntry(entry.data.agent) : undefined;
   </head>
   <body class="mx-auto max-w-3xl px-4 py-8">
     <a href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
-    <img
-      src={entry.data.coverImage.src}
-      alt={entry.data.title}
-      class="my-4 aspect-video w-full rounded-lg object-cover"
-    />
+    <Gallery images={galleryImages} class="my-4" />
     <h1 class="text-2xl font-bold">{entry.data.title}</h1>
     <PriceBadge price={entry.data.price} class="my-2" />
     <SpecsBar
