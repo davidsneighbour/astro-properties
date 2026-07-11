@@ -1,0 +1,57 @@
+---
+import type { Agent } from "../schema.js";
+
+interface Props {
+  agent: Agent;
+  class?: string | undefined;
+}
+
+const { agent, class: className } = Astro.props;
+const socialEntries = Object.entries(agent.socials);
+const whatsappHref = agent.whatsapp
+  ? `https://wa.me/${agent.whatsapp.replace(/[^0-9]/g, "")}`
+  : undefined;
+---
+
+<div class:list={["agent-card", "flex items-start gap-4 rounded-lg border p-4", className]}>
+  {
+    agent.photo && (
+      <img
+        src={agent.photo}
+        alt={agent.name}
+        class="h-16 w-16 shrink-0 rounded-full object-cover"
+      />
+    )
+  }
+  <div class="space-y-1">
+    <p class="font-medium">{agent.name}</p>
+    {agent.title && <p class="text-sm text-muted-foreground">{agent.title}</p>}
+    {agent.bio && <p class="text-sm">{agent.bio}</p>}
+    <ul class="flex flex-wrap gap-3 text-sm">
+      {agent.phone && (
+        <li>
+          <a href={`tel:${agent.phone}`}>{agent.phone}</a>
+        </li>
+      )}
+      {agent.email && (
+        <li>
+          <a href={`mailto:${agent.email}`}>{agent.email}</a>
+        </li>
+      )}
+      {whatsappHref && (
+        <li>
+          <a href={whatsappHref} rel="noopener noreferrer" target="_blank">
+            WhatsApp
+          </a>
+        </li>
+      )}
+      {socialEntries.map(([platform, url]) => (
+        <li>
+          <a href={url} rel="noopener noreferrer" target="_blank">
+            {platform}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </div>
+</div>

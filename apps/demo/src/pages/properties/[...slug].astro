@@ -1,10 +1,11 @@
 ---
+import AgentCard from "@davidsneighbour/astro-properties/components/AgentCard.astro";
 import AmenitiesList from "@davidsneighbour/astro-properties/components/AmenitiesList.astro";
 import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
 import PropertyMap from "@davidsneighbour/astro-properties/components/PropertyMap.astro";
 import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
 import "../../styles/global.css";
-import { getCollection, render } from "astro:content";
+import { getCollection, getEntry, render } from "astro:content";
 
 export async function getStaticPaths() {
   const properties = await getCollection("properties");
@@ -16,6 +17,7 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const agent = entry.data.agent ? await getEntry(entry.data.agent) : undefined;
 ---
 
 <html lang="en">
@@ -41,6 +43,7 @@ const { Content } = await render(entry);
     />
     <AmenitiesList amenities={entry.data.amenities} class="my-4" />
     <PropertyMap location={entry.data.location} class="my-4" />
+    {agent && <AgentCard agent={agent.data} class="my-4" />}
     <div class="prose">
       <Content />
     </div>
