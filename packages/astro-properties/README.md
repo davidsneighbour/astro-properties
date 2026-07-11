@@ -10,6 +10,9 @@ Tailwind + shadcn/ui component library for listings, galleries, maps, and agent 
 ## Requirements
 
 * Astro `>=7.0.0`
+* `@astrojs/mdx`, with the `mdx()` integration registered in `astro.config.mjs` — property
+  content is authored as `.mdx`, and the `glob()` loader silently skips `.mdx` files with no
+  entry type (empty collection, no build error) if this integration isn't registered
 * Tailwind CSS 4 configured in the consuming project
 * `@astrojs/react` + `react`/`react-dom` (interactive components use shadcn/ui, which is
   React + Radix UI based — see `ASSUMPTIONS.md` at the repo root for why)
@@ -17,7 +20,18 @@ Tailwind + shadcn/ui component library for listings, galleries, maps, and agent 
 ## Install
 
 ```bash
-npm install @davidsneighbour/astro-properties
+npm install @davidsneighbour/astro-properties @astrojs/mdx
+```
+
+Register the MDX integration in `astro.config.mjs`:
+
+```js
+import mdx from "@astrojs/mdx";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  integrations: [mdx()],
+});
 ```
 
 ## Quickstart
@@ -99,7 +113,25 @@ npm install @davidsneighbour/astro-properties
    ))}
    ```
 
-See `apps/demo` in this repository for a complete, working example site.
+See `apps/demo` in this repository for a complete, working example site. Verified by
+actually installing this package into a fresh `npm create astro` project and following
+these exact steps.
+
+## Validation errors
+
+Bad frontmatter fails the build with a message pointing at the offending field(s),
+rather than silently producing broken output. For example, a property missing
+`price.amount` (without `onRequest: true`) and an out-of-range `location.lat`:
+
+```text
+[InvalidContentEntryDataError] properties → my-listing data does not match collection schema.
+
+  price.amount: price.amount is required unless onRequest is true
+  location.lat: Too big: expected number to be <=90
+
+  Location:
+    src/content/properties/my-listing/index.mdx:0:0
+```
 
 ## What's exported
 
@@ -108,9 +140,14 @@ See `apps/demo` in this repository for a complete, working example site.
 * `./content-schema` — `definePropertySchema()` / `defineDevelopmentSchema()`, wrapping
   the base schema with Astro's `image()`/`reference()` for use in `content.config.ts`
 * `./lib/*` — `formatPrice`/`formatCurrency`/`formatArea`, `getMapProvider` (Leaflet
-  tile-provider adapter), `tomlLoader` (TOML content-collection loader)
-* `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard` (more
-  landing as later phases build them — see the repo root `ROADMAP.md`)
+  tile-provider adapter), `tomlLoader` (TOML content-collection loader), `lightbox.ts`
+  (pure open/close/step state for `Lightbox`), `structured-data.ts` (pure JSON-LD mapping
+  for `StructuredData`)
+* `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard`,
+  `Gallery`, `Lightbox`, `PropertyMap` (Leaflet), `AgentCard`, `StructuredData` (JSON-LD)
+* `./layouts/*` — `ListingLayout` (archive grid with `data-pagefind-*`/`data-filter-*`
+  attributes) and `PropertyLayout` (single-property detail page, composing all of the
+  above) — more landing as later phases build them, see the repo root `ROADMAP.md`
 
 ## Testing
 
