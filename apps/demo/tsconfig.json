@@ -1,0 +1,10 @@
+{
+  "extends": "@dnbhq/tsconfig/astro",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [".astro/types.d.ts", "src/**/*"],
+  "exclude": ["dist"]
+}

@@ -1,0 +1,7 @@
+CHANGELOG.md
+node_modules
+**/node_modules/**
+**/dist/**
+**/.astro/**
+# Frozen source research doc, kept as originally written; see TODO.md.
+astro-properties-roadmap.md

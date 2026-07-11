@@ -1,0 +1,9 @@
+name = "Jane Doe"
+title = "Senior Sales Agent"
+phone = "+66 81 234 5678"
+email = "jane@acme-realty.example"
+whatsapp = "+66812345678"
+bio = "Jane has sold beachfront and hillside properties on Koh Samui for over a decade."
+
+[socials]
+instagram = "https://instagram.com/example-jane"

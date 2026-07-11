@@ -1,0 +1,16 @@
+---
+import { formatPrice } from "../lib/format.js";
+import type { Price } from "../schema.js";
+
+interface Props {
+  price: Price;
+  class?: string | undefined;
+}
+
+const { price, class: className } = Astro.props;
+const label = formatPrice(price);
+---
+
+<span class:list={["price-badge", "inline-flex items-center font-semibold text-lg", className]}>
+  {label}
+</span>

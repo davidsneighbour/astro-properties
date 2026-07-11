@@ -1,0 +1,5 @@
+name = "John Smith"
+title = "Lettings Specialist"
+phone = "+66 89 555 1234"
+email = "john@acme-realty.example"
+bio = "John focuses on rentals and student lettings across the island."

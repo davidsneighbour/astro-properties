@@ -1,0 +1,50 @@
+---
+import type { Price } from "../schema.js";
+import AmenitiesList from "./AmenitiesList.astro";
+import PriceBadge from "./PriceBadge.astro";
+import SpecsBar from "./SpecsBar.astro";
+
+interface Props {
+  href: string;
+  title: string;
+  price: Price;
+  coverImageSrc: string;
+  coverImageAlt: string;
+  bedrooms?: number | undefined;
+  bathrooms?: number | undefined;
+  areaSize?: number | undefined;
+  areaUnit?: "sqft" | "sqm" | undefined;
+  labels?: string[] | undefined;
+  class?: string | undefined;
+}
+
+const {
+  href,
+  title,
+  price,
+  coverImageSrc,
+  coverImageAlt,
+  bedrooms,
+  bathrooms,
+  areaSize,
+  areaUnit,
+  labels = [],
+  class: className,
+} = Astro.props;
+---
+
+<a href={href} class:list={["property-card", "block rounded-lg border overflow-hidden", className]}>
+  <div class="relative">
+    <img src={coverImageSrc} alt={coverImageAlt} class="aspect-video w-full object-cover" />
+    {
+      labels.length > 0 && (
+        <AmenitiesList amenities={labels} class="absolute left-2 top-2" />
+      )
+    }
+  </div>
+  <div class="space-y-2 p-4">
+    <h3 class="font-medium">{title}</h3>
+    <PriceBadge price={price} />
+    <SpecsBar bedrooms={bedrooms} bathrooms={bathrooms} areaSize={areaSize} areaUnit={areaUnit} />
+  </div>
+</a>

@@ -1,0 +1,20 @@
+---
+interface Props {
+  amenities: string[];
+  class?: string | undefined;
+}
+
+const { amenities, class: className } = Astro.props;
+---
+
+{
+  amenities.length > 0 && (
+    <ul class:list={["amenities-list", "flex flex-wrap gap-2", className]}>
+      {amenities.map((amenity) => (
+        <li class="rounded-full border px-3 py-1 text-sm" data-amenity={amenity}>
+          {amenity}
+        </li>
+      ))}
+    </ul>
+  )
+}

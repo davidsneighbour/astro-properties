@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "extends": ["./node_modules/@dnbhq/biome-config/config.json"],
+  "files": {
+    "includes": [
+      "**",
+      "!**/dist/**",
+      "!**/.astro/**",
+      "!**/node_modules/**",
+      "!**/*.astro"
+    ]
+  },
+  "css": {
+    "parser": {
+      "cssModules": true,
+      "tailwindDirectives": true
+    }
+  }
+}

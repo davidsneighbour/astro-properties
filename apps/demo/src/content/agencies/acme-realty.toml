@@ -1,0 +1,4 @@
+name = "Acme Realty"
+address = "123 Beach Road, Koh Samui, Thailand"
+phone = "+66 77 000 111"
+email = "hello@acme-realty.example"

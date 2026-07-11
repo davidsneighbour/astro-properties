@@ -1,0 +1,46 @@
+---
+import AmenitiesList from "@davidsneighbour/astro-properties/components/AmenitiesList.astro";
+import PriceBadge from "@davidsneighbour/astro-properties/components/PriceBadge.astro";
+import SpecsBar from "@davidsneighbour/astro-properties/components/SpecsBar.astro";
+import "../../styles/global.css";
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const properties = await getCollection("properties");
+  return properties.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{entry.data.title} — Astro Properties demo</title>
+  </head>
+  <body class="mx-auto max-w-3xl px-4 py-8">
+    <a href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
+    <img
+      src={entry.data.coverImage.src}
+      alt={entry.data.title}
+      class="my-4 aspect-video w-full rounded-lg object-cover"
+    />
+    <h1 class="text-2xl font-bold">{entry.data.title}</h1>
+    <PriceBadge price={entry.data.price} class="my-2" />
+    <SpecsBar
+      bedrooms={entry.data.bedrooms}
+      bathrooms={entry.data.bathrooms}
+      areaSize={entry.data.areaSize}
+      areaUnit={entry.data.areaUnit}
+    />
+    <AmenitiesList amenities={entry.data.amenities} class="my-4" />
+    <div class="prose">
+      <Content />
+    </div>
+  </body>
+</html>

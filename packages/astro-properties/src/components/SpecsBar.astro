@@ -1,0 +1,29 @@
+---
+import { formatArea } from "../lib/format.js";
+
+interface Props {
+  bedrooms?: number | undefined;
+  bathrooms?: number | undefined;
+  areaSize?: number | undefined;
+  areaUnit?: "sqft" | "sqm" | undefined;
+  class?: string | undefined;
+}
+
+const { bedrooms, bathrooms, areaSize, areaUnit = "sqm", class: className } = Astro.props;
+
+const specs = [
+  bedrooms != null ? { icon: "bed", label: `${bedrooms} bd` } : null,
+  bathrooms != null ? { icon: "bath", label: `${bathrooms} ba` } : null,
+  areaSize != null ? { icon: "area", label: formatArea(areaSize, areaUnit) } : null,
+].filter((spec): spec is { icon: string; label: string } => spec !== null);
+---
+
+<ul class:list={["specs-bar", "flex items-center gap-4 text-sm text-muted-foreground", className]}>
+  {
+    specs.map((spec) => (
+      <li class="flex items-center gap-1" data-spec={spec.icon}>
+        <span>{spec.label}</span>
+      </li>
+    ))
+  }
+</ul>
