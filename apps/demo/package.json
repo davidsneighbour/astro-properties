@@ -10,7 +10,8 @@
     "check": "astro check",
     "typecheck": "astro check",
     "test": "vitest run",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "deploy": "wrangler pages deploy"
   },
   "dependencies": {
     "@astrojs/mdx": "7.0.2",
@@ -43,6 +44,7 @@
     "jsdom": "29.1.1",
     "typescript": "6.0.3",
     "vitest": "4.1.10",
+    "wrangler": "4.110.0",
     "yaml": "2.9.0"
   }
 }
