@@ -3,6 +3,7 @@ import {
   formatArea,
   formatCurrency,
 } from "@davidsneighbour/astro-properties/lib/format.js";
+import { paginate } from "@davidsneighbour/astro-properties/lib/pagination.js";
 import { useEffect, useMemo, useState } from "react";
 import {
   buildPagefindFilters,
@@ -68,6 +69,8 @@ export interface SearchFiltersProps {
 }
 
 const STATIC_LISTINGS_ID = "static-listings";
+const STATIC_PAGINATION_ID = "static-pagination";
+const PAGE_SIZE = 6;
 
 export function SearchFilters({
   types,
@@ -131,6 +134,8 @@ export function SearchFilters({
   useEffect(() => {
     const staticGrid = document.getElementById(STATIC_LISTINGS_ID);
     staticGrid?.classList.toggle("hidden", pagefind != null);
+    const staticPagination = document.getElementById(STATIC_PAGINATION_ID);
+    staticPagination?.classList.toggle("hidden", pagefind != null);
   }, [pagefind]);
 
   const selection = useMemo(
@@ -199,6 +204,17 @@ export function SearchFilters({
       return !listing || matchesRange(listing, rangeSelection, rangeIndex);
     });
   }, [results, rangeIndex, priceMin, priceMax, areaMin, areaMax]);
+
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [displayedResults]);
+
+  const { items: pagedResults, pageInfo } = useMemo(
+    () => paginate(displayedResults ?? [], page, PAGE_SIZE),
+    [displayedResults, page],
+  );
 
   function reset() {
     setQuery("");
@@ -411,7 +427,7 @@ export function SearchFilters({
       </p>
 
       <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {(displayedResults ?? []).map((result) => (
+        {pagedResults.map((result) => (
           <li key={result.id} className="rounded-lg border border-input p-3">
             <a href={result.url} className="flex gap-3">
               {result.image && (
@@ -446,6 +462,33 @@ export function SearchFilters({
           </li>
         ))}
       </ul>
+
+      {pageInfo.totalPages > 1 && (
+        <nav
+          aria-label="Search results pagination"
+          className="mt-4 flex items-center justify-center gap-4 text-sm"
+        >
+          <button
+            type="button"
+            disabled={!pageInfo.hasPrevious}
+            onClick={() => setPage((current) => current - 1)}
+            className="rounded-md border border-input px-3 py-1 disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <span>
+            Page {pageInfo.page} of {pageInfo.totalPages}
+          </span>
+          <button
+            type="button"
+            disabled={!pageInfo.hasNext}
+            onClick={() => setPage((current) => current + 1)}
+            className="rounded-md border border-input px-3 py-1 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </nav>
+      )}
     </div>
   );
 }

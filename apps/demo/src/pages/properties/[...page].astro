@@ -1,0 +1,100 @@
+---
+import ListingLayout from "@davidsneighbour/astro-properties/layouts/ListingLayout.astro";
+import { paginate } from "@davidsneighbour/astro-properties/lib/pagination.js";
+import "../../styles/global.css";
+import { getCollection } from "astro:content";
+import { SearchFilters } from "../../components/SearchFilters";
+
+// getStaticPaths() runs in an isolated scope and can't close over other
+// frontmatter variables, so this literal must stay in sync with the one below.
+export async function getStaticPaths() {
+  const properties = await getCollection("properties");
+  const totalPages = Math.max(1, Math.ceil(properties.length / 6));
+
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: i === 0 ? undefined : String(i + 1) },
+  }));
+}
+
+const PAGE_SIZE = 6;
+const requestedPage = Astro.params.page ? Number(Astro.params.page) : 1;
+const properties = await getCollection("properties");
+const { items: pageEntries, pageInfo } = paginate(properties, requestedPage, PAGE_SIZE);
+
+const listings = pageEntries.map((entry) => ({
+  href: `/properties/${entry.id}`,
+  title: entry.data.title,
+  price: entry.data.price,
+  coverImageSrc: entry.data.coverImage.src,
+  coverImageAlt: entry.data.title,
+  bedrooms: entry.data.bedrooms,
+  bathrooms: entry.data.bathrooms,
+  areaSize: entry.data.areaSize,
+  areaUnit: entry.data.areaUnit,
+  labels: entry.data.labels,
+}));
+
+function sortedUnique<T>(values: T[]): T[] {
+  return [...new Set(values)].sort();
+}
+
+// Facets cover the whole corpus, not just this page — SearchFilters/Pagefind search across every listing regardless of which archive page it renders on.
+const types = sortedUnique(properties.map((entry) => entry.data.type));
+const statuses = sortedUnique(properties.map((entry) => entry.data.status));
+const categories = sortedUnique(properties.map((entry) => entry.data.category));
+const locations = sortedUnique(properties.map((entry) => entry.data.location.city));
+const bedOptions = sortedUnique(
+  properties
+    .map((entry) => entry.data.bedrooms)
+    .filter((beds): beds is number => beds != null),
+).sort((a, b) => a - b);
+
+function pageHref(page: number): string {
+  return page <= 1 ? "/properties/" : `/properties/${page}/`;
+}
+
+const title =
+  pageInfo.totalPages > 1
+    ? `All properties — page ${pageInfo.page} of ${pageInfo.totalPages} — Astro Properties demo`
+    : "All properties — Astro Properties demo";
+---
+
+<ListingLayout title={title} listings={listings}>
+  <Fragment slot="intro">
+    <SearchFilters
+      client:load
+      types={types}
+      statuses={statuses}
+      categories={categories}
+      locations={locations}
+      bedOptions={bedOptions}
+    />
+  </Fragment>
+  {
+    pageInfo.totalPages > 1 && (
+      <nav
+        id="static-pagination"
+        aria-label="Pagination"
+        class="mt-6 flex items-center justify-center gap-4 text-sm"
+      >
+        {pageInfo.hasPrevious ? (
+          <a href={pageHref(pageInfo.page - 1)} class="underline">
+            Previous
+          </a>
+        ) : (
+          <span class="text-muted-foreground">Previous</span>
+        )}
+        <span>
+          Page {pageInfo.page} of {pageInfo.totalPages}
+        </span>
+        {pageInfo.hasNext ? (
+          <a href={pageHref(pageInfo.page + 1)} class="underline">
+            Next
+          </a>
+        ) : (
+          <span class="text-muted-foreground">Next</span>
+        )}
+      </nav>
+    )
+  }
+</ListingLayout>

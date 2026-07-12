@@ -263,4 +263,68 @@ describe("SearchFilters", () => {
       expect(screen.getByText("2 listings found")).toBeInTheDocument(),
     );
   });
+
+  it("paginates results (page size 6) and steps through pages with Previous/Next", async () => {
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: Array.from({ length: 7 }, (_, i) =>
+        resultStub(`listing-${i}`, { title: `Listing ${i}` }),
+      ),
+    });
+
+    render(<SearchFilters {...props} />);
+
+    expect(await screen.findByText("7 listings found")).toBeInTheDocument();
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+    expect(screen.getByText("Listing 0")).toBeInTheDocument();
+    expect(screen.queryByText("Listing 6")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
+    expect(screen.getByText("Listing 6")).toBeInTheDocument();
+    expect(screen.queryByText("Listing 0")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Previous" }));
+    expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
+  });
+
+  it("does not show pagination controls when everything fits on one page", async () => {
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: [resultStub("seaview-villa", { title: "Seaview Villa" })],
+    });
+
+    render(<SearchFilters {...props} />);
+
+    expect(await screen.findByText("1 listing found")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: "Search results pagination" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("resets to page 1 when the query changes", async () => {
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: Array.from({ length: 7 }, (_, i) =>
+        resultStub(`listing-${i}`, { title: `Listing ${i}` }),
+      ),
+    });
+
+    render(<SearchFilters {...props} />);
+    await screen.findByText("Page 1 of 2");
+
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    expect(await screen.findByText("Page 2 of 2")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Search"), {
+      target: { value: "villa" },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText("Page 1 of 2")).toBeInTheDocument(),
+    );
+  });
 });
