@@ -29,9 +29,26 @@ const props = {
   bedOptions: [1, 2, 3, 4],
 };
 
+const rangeIndex = {
+  price: { min: 100_000, max: 500_000, buckets: [] },
+  area: { min: 50, max: 350, buckets: [] },
+  listings: [
+    { id: "seaview-villa", price: 450_000, areaSize: 320 },
+    { id: "downtown-condo", price: 150_000, areaSize: 80 },
+  ],
+};
+
+function mockRangeIndexFetch() {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue({ json: async () => rangeIndex }),
+  );
+}
+
 describe("SearchFilters", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
     init.mockReset();
     search.mockReset();
     document.body.innerHTML = "";
@@ -129,5 +146,121 @@ describe("SearchFilters", () => {
     render(<SearchFilters {...props} />);
 
     expect(await screen.findByText("0 listings found")).toBeInTheDocument();
+  });
+
+  it("renders price/area range sliders once the JSON range index loads", async () => {
+    mockRangeIndexFetch();
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({ results: [] });
+
+    render(<SearchFilters {...props} />);
+
+    expect(await screen.findByLabelText("Minimum price")).toBeInTheDocument();
+    expect(screen.getByLabelText("Maximum price")).toBeInTheDocument();
+    expect(screen.getByLabelText("Minimum area")).toBeInTheDocument();
+    expect(screen.getByLabelText("Maximum area")).toBeInTheDocument();
+    expect(screen.getByText("$100,000 – $500,000")).toBeInTheDocument();
+  });
+
+  it("narrows results by area range, and clamps the min thumb when it would cross the max thumb", async () => {
+    mockRangeIndexFetch();
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: [
+        resultStub("seaview-villa", { title: "Seaview Villa" }),
+        resultStub("downtown-condo", { title: "Downtown Condo" }),
+      ],
+    });
+
+    render(<SearchFilters {...props} />);
+    await waitFor(() =>
+      expect(screen.getByLabelText("Minimum area")).toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByLabelText("Minimum area"), {
+      target: { value: "100" },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText("1 listing found")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Seaview Villa")).toBeInTheDocument();
+
+    // Dragging the min thumb past the max thumb clamps it to the max, not past it.
+    fireEvent.change(screen.getByLabelText("Minimum area"), {
+      target: { value: "1000" },
+    });
+    expect(screen.getByLabelText("Minimum area")).toHaveValue("350");
+  });
+
+  it("narrows results by price range client-side, without re-querying Pagefind", async () => {
+    mockRangeIndexFetch();
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: [
+        resultStub("seaview-villa", {
+          title: "Seaview Villa",
+          price: "$450,000",
+        }),
+        resultStub("downtown-condo", {
+          title: "Downtown Condo",
+          price: "$150,000",
+        }),
+      ],
+    });
+
+    render(<SearchFilters {...props} />);
+
+    expect(await screen.findByText("2 listings found")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByLabelText("Maximum price")).toBeInTheDocument(),
+    );
+    search.mockClear();
+
+    fireEvent.change(screen.getByLabelText("Maximum price"), {
+      target: { value: "300000" },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText("1 listing found")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Downtown Condo")).toBeInTheDocument();
+    expect(screen.queryByText("Seaview Villa")).not.toBeInTheDocument();
+    expect(search).not.toHaveBeenCalled();
+  });
+
+  it("restores the full price/area range when Reset is clicked", async () => {
+    mockRangeIndexFetch();
+    init.mockResolvedValue(undefined);
+    search.mockResolvedValue({
+      results: [
+        resultStub("seaview-villa", {
+          title: "Seaview Villa",
+          price: "$450,000",
+        }),
+        resultStub("downtown-condo", {
+          title: "Downtown Condo",
+          price: "$150,000",
+        }),
+      ],
+    });
+
+    render(<SearchFilters {...props} />);
+    await waitFor(() =>
+      expect(screen.getByLabelText("Maximum price")).toBeInTheDocument(),
+    );
+
+    fireEvent.change(screen.getByLabelText("Maximum price"), {
+      target: { value: "300000" },
+    });
+    await waitFor(() =>
+      expect(screen.getByText("1 listing found")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Reset" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("2 listings found")).toBeInTheDocument(),
+    );
   });
 });

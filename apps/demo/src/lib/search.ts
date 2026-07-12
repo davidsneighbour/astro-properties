@@ -1,3 +1,8 @@
+import type {
+  RangeIndex,
+  RangeIndexListing,
+} from "@davidsneighbour/astro-properties/lib/filter.js";
+
 export interface SearchFacetSelection {
   type?: string | undefined;
   status?: string | undefined;
@@ -35,4 +40,61 @@ export function buildPagefindSort(
   if (sort === "price-asc") return { price: "asc" };
   if (sort === "price-desc") return { price: "desc" };
   return undefined;
+}
+
+/** Pagefind result URLs are `/properties/<id>/` — the trailing path segment is the listing id used in the JSON range index. */
+export function extractListingId(url: string): string {
+  const segments = url.split("/").filter(Boolean);
+  return segments[segments.length - 1] ?? "";
+}
+
+export function findListing(
+  index: RangeIndex,
+  id: string,
+): RangeIndexListing | undefined {
+  return index.listings.find((listing) => listing.id === id);
+}
+
+export interface RangeSelection {
+  priceMin?: number | undefined;
+  priceMax?: number | undefined;
+  areaMin?: number | undefined;
+  areaMax?: number | undefined;
+}
+
+/**
+ * Pagefind's filters are categorical and can't express numeric ranges, so
+ * price/area narrowing happens client-side against the generated JSON range
+ * index instead. A range only applies once the user has actually narrowed
+ * it away from the index's full bounds — otherwise listings with no known
+ * price/area (e.g. "price on request") would be excluded by default.
+ */
+export function matchesRange(
+  listing: Pick<RangeIndexListing, "price" | "areaSize">,
+  selection: RangeSelection,
+  bounds: Pick<RangeIndex, "price" | "area">,
+): boolean {
+  const priceNarrowed =
+    (selection.priceMin != null && selection.priceMin > bounds.price.min) ||
+    (selection.priceMax != null && selection.priceMax < bounds.price.max);
+  if (priceNarrowed) {
+    if (listing.price == null) return false;
+    if (selection.priceMin != null && listing.price < selection.priceMin)
+      return false;
+    if (selection.priceMax != null && listing.price > selection.priceMax)
+      return false;
+  }
+
+  const areaNarrowed =
+    (selection.areaMin != null && selection.areaMin > bounds.area.min) ||
+    (selection.areaMax != null && selection.areaMax < bounds.area.max);
+  if (areaNarrowed) {
+    if (listing.areaSize == null) return false;
+    if (selection.areaMin != null && listing.areaSize < selection.areaMin)
+      return false;
+    if (selection.areaMax != null && listing.areaSize > selection.areaMax)
+      return false;
+  }
+
+  return true;
 }

@@ -139,10 +139,13 @@ rather than silently producing broken output. For example, a property missing
   `agencySchema`, `officeSchema`, enums, `Price`/`Location`/`Energy` types)
 * `./content-schema` — `definePropertySchema()` / `defineDevelopmentSchema()`, wrapping
   the base schema with Astro's `image()`/`reference()` for use in `content.config.ts`
-* `./lib/*` — `formatPrice`/`formatCurrency`/`formatArea`, `getMapProvider` (Leaflet
-  tile-provider adapter), `tomlLoader` (TOML content-collection loader), `lightbox.ts`
-  (pure open/close/step state for `Lightbox`), `structured-data.ts` (pure JSON-LD mapping
-  for `StructuredData`)
+* `./lib/*` — `formatPrice`/`formatCurrency`/`formatArea`/`formatSortableNumber`,
+  `getMapProvider` (Leaflet tile-provider adapter), `tomlLoader` (TOML content-collection
+  loader), `lightbox.ts` (pure open/close/step state for `Lightbox`), `structured-data.ts`
+  (pure JSON-LD mapping for `StructuredData`), `buildRangeIndex` (`filter.ts` — build-time
+  min/max/bucket JSON index for numeric price/area range filtering, since Pagefind's own
+  filters are categorical and too coarse for that; see `apps/demo`'s `listings-index.json.ts`
+  endpoint and `SearchFilters` island)
 * `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard`,
   `Gallery`, `Lightbox`, `PropertyMap` (Leaflet), `AgentCard`, `StructuredData` (JSON-LD)
 * `./layouts/*` — `ListingLayout` (archive grid of `PropertyCard`s) and `PropertyLayout`

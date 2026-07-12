@@ -1,7 +1,15 @@
+import type { RangeIndex } from "@davidsneighbour/astro-properties/lib/filter.js";
+import {
+  formatArea,
+  formatCurrency,
+} from "@davidsneighbour/astro-properties/lib/format.js";
 import { useEffect, useMemo, useState } from "react";
 import {
   buildPagefindFilters,
   buildPagefindSort,
+  extractListingId,
+  findListing,
+  matchesRange,
   type SortOption,
 } from "@/lib/search";
 
@@ -79,6 +87,31 @@ export function SearchFilters({
   const [sort, setSort] = useState<SortOption>("relevance");
   const [results, setResults] = useState<ResultView[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [rangeIndex, setRangeIndex] = useState<RangeIndex | null>(null);
+  const [priceMin, setPriceMin] = useState<number | undefined>(undefined);
+  const [priceMax, setPriceMax] = useState<number | undefined>(undefined);
+  const [areaMin, setAreaMin] = useState<number | undefined>(undefined);
+  const [areaMax, setAreaMax] = useState<number | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/listings-index.json")
+      .then((response) => response.json())
+      .then((index: RangeIndex) => {
+        if (cancelled) return;
+        setRangeIndex(index);
+        setPriceMin(index.price.min);
+        setPriceMax(index.price.max);
+        setAreaMin(index.area.min);
+        setAreaMax(index.area.max);
+      })
+      .catch(() => {
+        // Range sliders simply don't render without an index — text search and facets still work.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -158,6 +191,15 @@ export function SearchFilters({
     };
   }, [pagefind, query, selection, sort]);
 
+  const displayedResults = useMemo(() => {
+    if (!results || !rangeIndex) return results;
+    const rangeSelection = { priceMin, priceMax, areaMin, areaMax };
+    return results.filter((result) => {
+      const listing = findListing(rangeIndex, extractListingId(result.url));
+      return !listing || matchesRange(listing, rangeSelection, rangeIndex);
+    });
+  }, [results, rangeIndex, priceMin, priceMax, areaMin, areaMax]);
+
   function reset() {
     setQuery("");
     setType("");
@@ -166,6 +208,12 @@ export function SearchFilters({
     setLocation("");
     setMinBeds("");
     setSort("relevance");
+    if (rangeIndex) {
+      setPriceMin(rangeIndex.price.min);
+      setPriceMax(rangeIndex.price.max);
+      setAreaMin(rangeIndex.area.min);
+      setAreaMax(rangeIndex.area.max);
+    }
   }
 
   if (unavailable) {
@@ -268,6 +316,73 @@ export function SearchFilters({
             ))}
           </select>
         </label>
+        {rangeIndex &&
+          priceMin != null &&
+          priceMax != null &&
+          rangeIndex.price.min < rangeIndex.price.max && (
+            <div className="flex flex-col text-sm">
+              <span>Price range</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  aria-label="Minimum price"
+                  min={rangeIndex.price.min}
+                  max={rangeIndex.price.max}
+                  value={priceMin}
+                  onChange={(event) =>
+                    setPriceMin(Math.min(Number(event.target.value), priceMax))
+                  }
+                />
+                <input
+                  type="range"
+                  aria-label="Maximum price"
+                  min={rangeIndex.price.min}
+                  max={rangeIndex.price.max}
+                  value={priceMax}
+                  onChange={(event) =>
+                    setPriceMax(Math.max(Number(event.target.value), priceMin))
+                  }
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatCurrency(priceMin, "USD")} –{" "}
+                {formatCurrency(priceMax, "USD")}
+              </span>
+            </div>
+          )}
+        {rangeIndex &&
+          areaMin != null &&
+          areaMax != null &&
+          rangeIndex.area.min < rangeIndex.area.max && (
+            <div className="flex flex-col text-sm">
+              <span>Area range</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="range"
+                  aria-label="Minimum area"
+                  min={rangeIndex.area.min}
+                  max={rangeIndex.area.max}
+                  value={areaMin}
+                  onChange={(event) =>
+                    setAreaMin(Math.min(Number(event.target.value), areaMax))
+                  }
+                />
+                <input
+                  type="range"
+                  aria-label="Maximum area"
+                  min={rangeIndex.area.min}
+                  max={rangeIndex.area.max}
+                  value={areaMax}
+                  onChange={(event) =>
+                    setAreaMax(Math.max(Number(event.target.value), areaMin))
+                  }
+                />
+              </div>
+              <span className="text-xs text-muted-foreground">
+                {formatArea(areaMin, "sqm")} – {formatArea(areaMax, "sqm")}
+              </span>
+            </div>
+          )}
         <label className="flex flex-col text-sm">
           Sort
           <select
@@ -290,13 +405,13 @@ export function SearchFilters({
       </form>
 
       <p className="mt-3 text-sm text-muted-foreground">
-        {loading || results === null
+        {loading || displayedResults === null
           ? "Searching…"
-          : `${results.length} ${results.length === 1 ? "listing" : "listings"} found`}
+          : `${displayedResults.length} ${displayedResults.length === 1 ? "listing" : "listings"} found`}
       </p>
 
       <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        {(results ?? []).map((result) => (
+        {(displayedResults ?? []).map((result) => (
           <li key={result.id} className="rounded-lg border border-input p-3">
             <a href={result.url} className="flex gap-3">
               {result.image && (
