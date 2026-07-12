@@ -1,0 +1,43 @@
+---
+import type { Energy } from "../schema.js";
+
+interface Props {
+  energy?: Energy | undefined;
+  class?: string | undefined;
+}
+
+const { energy, class: className } = Astro.props;
+
+const rating = energy?.class;
+const current = energy?.epcCurrent;
+const potential = energy?.epcPotential;
+const hasData = rating != null || current != null || potential != null;
+---
+
+{
+  hasData && (
+    <div class:list={["energy-graph", className]} data-energy-graph>
+      {rating && (
+        <p class="text-sm font-medium" data-energy-rating>
+          Energy rating: {rating}
+        </p>
+      )}
+      {current != null && (
+        <div class="mt-2" data-energy-bar="current">
+          <span class="text-xs text-muted-foreground">Current: {current}</span>
+          <div class="h-2 w-full rounded bg-muted">
+            <div class="h-2 rounded bg-primary" style={`width: ${current}%`} />
+          </div>
+        </div>
+      )}
+      {potential != null && (
+        <div class="mt-2" data-energy-bar="potential">
+          <span class="text-xs text-muted-foreground">Potential: {potential}</span>
+          <div class="h-2 w-full rounded bg-muted">
+            <div class="h-2 rounded bg-secondary" style={`width: ${potential}%`} />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

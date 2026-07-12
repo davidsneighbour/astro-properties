@@ -1,0 +1,36 @@
+---
+import { formatArea, formatCurrency } from "../lib/format.js";
+import type { FloorPlan } from "../schema.js";
+
+interface Props {
+  floorPlans: FloorPlan[];
+  areaUnit?: "sqft" | "sqm" | undefined;
+  currency?: string | undefined;
+  class?: string | undefined;
+}
+
+const { floorPlans, areaUnit = "sqm", currency = "USD", class: className } = Astro.props;
+---
+
+{
+  floorPlans.length > 0 && (
+    <div
+      class:list={["floor-plans", "grid grid-cols-1 gap-4 sm:grid-cols-2", className]}
+      data-floor-plans
+    >
+      {floorPlans.map((plan) => (
+        <div class="rounded-lg border p-3" data-floor-plan>
+          <img src={plan.image} alt={plan.title} class="mb-2 w-full rounded" />
+          <h3 class="font-medium">{plan.title}</h3>
+          <p class="flex flex-wrap gap-2 text-sm text-muted-foreground">
+            {plan.size != null && <span>{formatArea(plan.size, areaUnit)}</span>}
+            {plan.bedrooms != null && <span>{plan.bedrooms} bd</span>}
+            {plan.bathrooms != null && <span>{plan.bathrooms} ba</span>}
+            {plan.price != null && <span>{formatCurrency(plan.price, currency)}</span>}
+          </p>
+          {plan.description && <p class="mt-1 text-sm">{plan.description}</p>}
+        </div>
+      ))}
+    </div>
+  )
+}

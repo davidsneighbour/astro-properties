@@ -152,7 +152,9 @@ rather than silently producing broken output. For example, a property missing
 * `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard`,
   `Gallery`, `Lightbox`, `PropertyMap` (single-listing Leaflet map), `SuperMap` (all-listings
   map with `leaflet.markercluster` clustering, `leaflet-draw` polygon/radius drawing, and
-  `leaflet-geosearch` location autocomplete), `AgentCard`, `StructuredData` (JSON-LD)
+  `leaflet-geosearch` location autocomplete), `AgentCard`, `StructuredData` (JSON-LD),
+  `FloorPlans` (renders the `floorPlans[]` array), `EnergyGraph` (EPC current/potential bars
+  from the `energy` object — renders nothing when no energy data is given at all)
 * `./layouts/*` — `ListingLayout` (archive grid of `PropertyCard`s) and `PropertyLayout`
   (single-property detail page, composing all of the above and carrying the
   `data-pagefind-body`/`data-pagefind-filter`/`data-pagefind-meta`/`data-pagefind-sort`
