@@ -1,5 +1,12 @@
 import type { LightboxImage } from "../lib/lightbox.js";
-import type { Agent, Location, Price } from "../schema.js";
+import type {
+  Agent,
+  Category,
+  Location,
+  Price,
+  PropertyStatus,
+  PropertyType,
+} from "../schema.js";
 
 export interface PropertyDetail {
   title: string;
@@ -14,4 +21,9 @@ export interface PropertyDetail {
   location: Location;
   images: LightboxImage[];
   agent?: Agent | undefined;
+  /** Pagefind facet/meta attributes are rendered from these on the detail page — see PropertyLayout. */
+  type: PropertyType;
+  status: PropertyStatus;
+  category: Category;
+  coverImageSrc: string;
 }

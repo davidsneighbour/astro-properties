@@ -15,9 +15,6 @@ function listing(overrides: Partial<ListingCard> = {}): ListingCard {
     price: price(450000),
     coverImageSrc: "/images/seaview-villa.jpg",
     coverImageAlt: "Seaview Villa",
-    type: "villa",
-    status: "for-sale",
-    category: "residential",
     ...overrides,
   };
 }
@@ -53,73 +50,13 @@ describe("ListingLayout", () => {
     expect(result.match(/data-listing-card/g)).toBeNull();
   });
 
-  it("marks the grid with data-pagefind-body", async () => {
+  it("marks the grid with a stable id for the search island to target", async () => {
     const container = await AstroContainer.create();
     const result = await container.renderToString(ListingLayout, {
       props: { title: "All listings", listings: [listing()] },
     });
 
-    expect(result).toContain("data-pagefind-body");
-  });
-
-  it("adds data-pagefind-filter attributes for type/status/category", async () => {
-    const container = await AstroContainer.create();
-    const result = await container.renderToString(ListingLayout, {
-      props: {
-        title: "All listings",
-        listings: [
-          listing({
-            type: "condominium",
-            status: "for-rent",
-            category: "student",
-          }),
-        ],
-      },
-    });
-
-    expect(result).toContain('data-pagefind-filter="type:condominium"');
-    expect(result).toContain('data-pagefind-filter="status:for-rent"');
-    expect(result).toContain('data-pagefind-filter="category:student"');
-  });
-
-  it("adds data-filter-type/price/beds attributes for the pre-Pagefind filter", async () => {
-    const container = await AstroContainer.create();
-    const result = await container.renderToString(ListingLayout, {
-      props: {
-        title: "All listings",
-        listings: [
-          listing({ type: "condominium", bedrooms: 2, price: price(1200) }),
-        ],
-      },
-    });
-
-    expect(result).toContain('data-filter-type="condominium"');
-    expect(result).toContain('data-filter-price="1200"');
-    expect(result).toContain('data-filter-beds="2"');
-  });
-
-  it("leaves data-filter-price empty for an onRequest listing", async () => {
-    const container = await AstroContainer.create();
-    const result = await container.renderToString(ListingLayout, {
-      props: {
-        title: "All listings",
-        listings: [listing({ price: { currency: "USD", onRequest: true } })],
-      },
-    });
-
-    expect(result).toMatch(/data-filter-price(?!=)/);
-  });
-
-  it("leaves data-filter-beds empty when bedrooms is not set", async () => {
-    const container = await AstroContainer.create();
-    const result = await container.renderToString(ListingLayout, {
-      props: {
-        title: "All listings",
-        listings: [listing({ bedrooms: undefined })],
-      },
-    });
-
-    expect(result).toMatch(/data-filter-beds(?!=)/);
+    expect(result).toContain('id="static-listings"');
   });
 
   it("renders the page title", async () => {

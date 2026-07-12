@@ -6,6 +6,7 @@ import PriceBadge from "../components/PriceBadge.astro";
 import PropertyMap from "../components/PropertyMap.astro";
 import SpecsBar from "../components/SpecsBar.astro";
 import StructuredData from "../components/StructuredData.astro";
+import { formatArea, formatPrice, formatSortableNumber } from "../lib/format.js";
 import type { PropertyDetail } from "./property-detail.js";
 
 interface Props extends PropertyDetail {
@@ -25,8 +26,25 @@ const {
   location,
   images,
   agent,
+  type,
+  status,
+  category,
+  coverImageSrc,
   class: className,
 } = Astro.props;
+
+/** Listings without a numeric price sort last (ascending) rather than dropping out of a price-sorted search. */
+const ON_REQUEST_SORT_SENTINEL = 999_999_999_999;
+const priceSortValue = formatSortableNumber(price.amount ?? ON_REQUEST_SORT_SENTINEL);
+
+/**
+ * Pagefind requires every value passed for a given filter key to match
+ * (AND, not OR) — there is no built-in "at least N" numeric filter. Emitting
+ * one cumulative "N+" tag per threshold up to the actual bedroom count lets
+ * a "min beds" search filter on a single tag (e.g. `beds:3+`) and still
+ * match every listing with 3 or more bedrooms.
+ */
+const bedThresholds = bedrooms != null ? Array.from({ length: bedrooms }, (_, i) => i + 1) : [];
 ---
 
 <html lang="en">
@@ -44,7 +62,7 @@ const {
       agentName={agent?.name}
     />
   </head>
-  <body class:list={["property-detail", className]}>
+  <body class:list={["property-detail", className]} data-pagefind-body>
     <slot name="before" />
     <Gallery images={images} class="my-4" />
     <h1>{title}</h1>
@@ -54,5 +72,20 @@ const {
     <PropertyMap location={location} class="my-4" />
     {agent && <AgentCard agent={agent} class="my-4" />}
     <slot />
+    <div class="hidden" aria-hidden="true">
+      <span data-pagefind-filter={`type:${type}`} />
+      <span data-pagefind-filter={`status:${status}`} />
+      <span data-pagefind-filter={`category:${category}`} />
+      {bedThresholds.map((threshold) => <span data-pagefind-filter={`beds:${threshold}+`} />)}
+      <span data-pagefind-filter={`location:${location.city}`} />
+      <span data-pagefind-meta={`image:${coverImageSrc}`} />
+      <span data-pagefind-meta={`price:${formatPrice(price)}`} />
+      {bedrooms != null && <span data-pagefind-meta={`beds:${bedrooms}`} />}
+      {bathrooms != null && <span data-pagefind-meta={`baths:${bathrooms}`} />}
+      {areaSize != null && (
+        <span data-pagefind-meta={`area:${formatArea(areaSize, areaUnit ?? "sqm")}`} />
+      )}
+      <span data-pagefind-sort={`price:${priceSortValue}`} />
+    </div>
   </body>
 </html>

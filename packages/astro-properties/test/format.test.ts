@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatArea, formatCurrency, formatPrice } from "../src/lib/format.js";
+import {
+  formatArea,
+  formatCurrency,
+  formatPrice,
+  formatSortableNumber,
+} from "../src/lib/format.js";
 import type { Price } from "../src/schema.js";
 
 function price(overrides: Partial<Price> = {}): Price {
@@ -71,5 +76,22 @@ describe("formatPrice", () => {
 
   it("falls back to 'Price on request' when amount is missing and onRequest is false", () => {
     expect(formatPrice(price({ amount: undefined }))).toBe("Price on request");
+  });
+});
+
+describe("formatSortableNumber", () => {
+  it("zero-pads to the default width so string comparison sorts numerically", () => {
+    expect(formatSortableNumber(450000)).toBe("000000450000");
+    expect(formatSortableNumber(1200000) > formatSortableNumber(450000)).toBe(
+      true,
+    );
+  });
+
+  it("rounds fractional amounts before padding", () => {
+    expect(formatSortableNumber(99.6)).toBe("000000000100");
+  });
+
+  it("respects a custom width", () => {
+    expect(formatSortableNumber(42, 4)).toBe("0042");
   });
 });

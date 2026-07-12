@@ -35,3 +35,12 @@ export function formatArea(size: number, unit: "sqft" | "sqm"): string {
   const formatted = new Intl.NumberFormat("en-US").format(size);
   return `${formatted} ${unit === "sqm" ? "m²" : "sqft"}`;
 }
+
+/**
+ * Zero-pads a non-negative number into a fixed-width string so it sorts
+ * correctly lexicographically — used for `data-pagefind-sort`, which only
+ * ever compares sort values as plain strings.
+ */
+export function formatSortableNumber(value: number, length = 12): string {
+  return Math.round(value).toString().padStart(length, "0");
+}

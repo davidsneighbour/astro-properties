@@ -145,9 +145,12 @@ rather than silently producing broken output. For example, a property missing
   for `StructuredData`)
 * `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard`,
   `Gallery`, `Lightbox`, `PropertyMap` (Leaflet), `AgentCard`, `StructuredData` (JSON-LD)
-* `./layouts/*` — `ListingLayout` (archive grid with `data-pagefind-*`/`data-filter-*`
-  attributes) and `PropertyLayout` (single-property detail page, composing all of the
-  above) — more landing as later phases build them, see the repo root `ROADMAP.md`
+* `./layouts/*` — `ListingLayout` (archive grid of `PropertyCard`s) and `PropertyLayout`
+  (single-property detail page, composing all of the above and carrying the
+  `data-pagefind-body`/`data-pagefind-filter`/`data-pagefind-meta`/`data-pagefind-sort`
+  attributes real full-text search and faceting are indexed from — see `apps/demo`'s
+  `postbuild` script and `SearchFilters` island) — more landing as later phases build
+  them, see the repo root `ROADMAP.md`
 
 ## Testing
 

@@ -2,6 +2,7 @@
 import ListingLayout from "@davidsneighbour/astro-properties/layouts/ListingLayout.astro";
 import "../../styles/global.css";
 import { getCollection } from "astro:content";
+import { SearchFilters } from "../../components/SearchFilters";
 
 const properties = await getCollection("properties");
 const listings = properties.map((entry) => ({
@@ -15,71 +16,32 @@ const listings = properties.map((entry) => ({
   areaSize: entry.data.areaSize,
   areaUnit: entry.data.areaUnit,
   labels: entry.data.labels,
-  type: entry.data.type,
-  status: entry.data.status,
-  category: entry.data.category,
 }));
 
-const types = [...new Set(listings.map((listing) => listing.type))].sort();
+function sortedUnique<T>(values: T[]): T[] {
+  return [...new Set(values)].sort();
+}
+
+const types = sortedUnique(properties.map((entry) => entry.data.type));
+const statuses = sortedUnique(properties.map((entry) => entry.data.status));
+const categories = sortedUnique(properties.map((entry) => entry.data.category));
+const locations = sortedUnique(properties.map((entry) => entry.data.location.city));
+const bedOptions = sortedUnique(
+  properties
+    .map((entry) => entry.data.bedrooms)
+    .filter((beds): beds is number => beds != null),
+).sort((a, b) => a - b);
 ---
 
 <ListingLayout title="All properties — Astro Properties demo" listings={listings}>
-  <form slot="intro" id="listing-filter" class="mb-6 flex flex-wrap items-end gap-3">
-    <label class="flex flex-col text-sm">
-      Type
-      <select name="type">
-        <option value="">Any</option>
-        {types.map((type) => <option value={type}>{type}</option>)}
-      </select>
-    </label>
-    <label class="flex flex-col text-sm">
-      Min price
-      <input type="number" name="minPrice" min="0" />
-    </label>
-    <label class="flex flex-col text-sm">
-      Max price
-      <input type="number" name="maxPrice" min="0" />
-    </label>
-    <label class="flex flex-col text-sm">
-      Min beds
-      <input type="number" name="minBeds" min="0" />
-    </label>
-    <button type="reset">Reset</button>
-    <p id="listing-filter-count" class="w-full text-sm text-muted-foreground" />
-  </form>
+  <Fragment slot="intro">
+    <SearchFilters
+      client:load
+      types={types}
+      statuses={statuses}
+      categories={categories}
+      locations={locations}
+      bedOptions={bedOptions}
+    />
+  </Fragment>
 </ListingLayout>
-
-<script>
-  import { matchesFilter } from "../../lib/filter-listings.js";
-
-  const form = document.querySelector<HTMLFormElement>("#listing-filter");
-  const count = document.querySelector<HTMLElement>("#listing-filter-count");
-  const cards = document.querySelectorAll<HTMLElement>("[data-listing-card]");
-
-  function apply() {
-    if (!form) return;
-    const data = new FormData(form);
-    const type = String(data.get("type") ?? "");
-    const minPrice = data.get("minPrice") ? Number(data.get("minPrice")) : undefined;
-    const maxPrice = data.get("maxPrice") ? Number(data.get("maxPrice")) : undefined;
-    const minBeds = data.get("minBeds") ? Number(data.get("minBeds")) : undefined;
-
-    let visible = 0;
-    for (const card of cards) {
-      const price = card.dataset["filterPrice"] ? Number(card.dataset["filterPrice"]) : null;
-      const beds = card.dataset["filterBeds"] ? Number(card.dataset["filterBeds"]) : null;
-      const matches = matchesFilter(
-        { type: card.dataset["filterType"] ?? "", price, beds },
-        { type, minPrice, maxPrice, minBeds },
-      );
-      card.classList.toggle("hidden", !matches);
-      if (matches) visible += 1;
-    }
-
-    if (count) count.textContent = `${visible} of ${cards.length} listings`;
-  }
-
-  form?.addEventListener("input", apply);
-  form?.addEventListener("reset", () => setTimeout(apply, 0));
-  apply();
-</script>

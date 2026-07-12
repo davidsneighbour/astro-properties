@@ -32,6 +32,10 @@ const images = entry.data.gallery.map((image) => ({
   location={entry.data.location}
   images={images}
   agent={agent?.data}
+  type={entry.data.type}
+  status={entry.data.status}
+  category={entry.data.category}
+  coverImageSrc={entry.data.coverImage.src}
   class="mx-auto max-w-3xl px-4 py-8"
 >
   <a slot="before" href="/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
