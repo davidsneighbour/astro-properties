@@ -1,0 +1,34 @@
+---
+import SuperMap from "@davidsneighbour/astro-properties/components/SuperMap.astro";
+import "../styles/global.css";
+import { getCollection } from "astro:content";
+
+const properties = await getCollection("properties");
+const listings = properties
+  .filter((entry) => !entry.data.location.hideExact)
+  .map((entry) => ({
+    id: entry.id,
+    href: `/properties/${entry.id}`,
+    title: entry.data.title,
+    price: entry.data.price,
+    lat: entry.data.location.lat,
+    lng: entry.data.location.lng,
+  }));
+---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Map — Astro Properties demo</title>
+  </head>
+  <body class="mx-auto max-w-5xl px-4 py-8">
+    <a href="/properties/" class="text-sm text-muted-foreground">&larr; Back to listings</a>
+    <h1 class="mb-4 mt-2 text-2xl font-semibold">All properties on the map</h1>
+    <p class="mb-4 text-sm text-muted-foreground">
+      Draw a polygon or a circle on the map to narrow the listings to that area, or use the
+      search box to jump to a location.
+    </p>
+    <SuperMap listings={listings} />
+  </body>
+</html>

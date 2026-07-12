@@ -145,9 +145,14 @@ rather than silently producing broken output. For example, a property missing
   (pure JSON-LD mapping for `StructuredData`), `buildRangeIndex` (`filter.ts` — build-time
   min/max/bucket JSON index for numeric price/area range filtering, since Pagefind's own
   filters are categorical and too coarse for that; see `apps/demo`'s `listings-index.json.ts`
-  endpoint and `SearchFilters` island)
+  endpoint and `SearchFilters` island), `paginate` (`pagination.ts` — pure page-slice/count
+  math shared by the static archive route and client-side search results), `distanceKm`/
+  `isPointInRadius`/`isPointInPolygon` (`geo.ts` — pure geometry for `SuperMap`'s radius and
+  draw-a-search filtering)
 * `./components/*` — `PriceBadge`, `SpecsBar`, `AmenitiesList`, `PropertyCard`,
-  `Gallery`, `Lightbox`, `PropertyMap` (Leaflet), `AgentCard`, `StructuredData` (JSON-LD)
+  `Gallery`, `Lightbox`, `PropertyMap` (single-listing Leaflet map), `SuperMap` (all-listings
+  map with `leaflet.markercluster` clustering, `leaflet-draw` polygon/radius drawing, and
+  `leaflet-geosearch` location autocomplete), `AgentCard`, `StructuredData` (JSON-LD)
 * `./layouts/*` — `ListingLayout` (archive grid of `PropertyCard`s) and `PropertyLayout`
   (single-property detail page, composing all of the above and carrying the
   `data-pagefind-body`/`data-pagefind-filter`/`data-pagefind-meta`/`data-pagefind-sort`

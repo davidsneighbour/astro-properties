@@ -1,0 +1,193 @@
+---
+import { formatPrice } from "../lib/format.js";
+import { type MapProviderKey, getMapProvider } from "../lib/map-providers.js";
+import type { SuperMapListing } from "./super-map-listing.js";
+
+interface Props {
+  listings: SuperMapListing[];
+  provider?: MapProviderKey | undefined;
+  class?: string | undefined;
+}
+
+const { listings, provider, class: className } = Astro.props;
+const tile = getMapProvider(provider);
+
+const markers = listings.map((listing) => ({
+  id: listing.id,
+  href: listing.href,
+  title: listing.title,
+  price: formatPrice(listing.price),
+  lat: listing.lat,
+  lng: listing.lng,
+}));
+
+const mapId = `super-map-${crypto.randomUUID().slice(0, 8)}`;
+---
+
+<div class:list={["super-map", className]} data-super-map-root>
+  <div
+    id={mapId}
+    class="super-map-canvas h-[32rem] w-full rounded-lg"
+    data-super-map
+    data-markers={JSON.stringify(markers)}
+    data-tile-url={tile.tileUrl}
+    data-attribution={tile.attribution}
+  >
+  </div>
+  <div class="mt-2 flex items-center gap-3">
+    <p class="text-sm text-muted-foreground" data-super-map-count>
+      {markers.length} of {markers.length} listings shown
+    </p>
+    <button
+      type="button"
+      class="hidden rounded-md border border-input px-3 py-1 text-sm"
+      data-super-map-clear
+    >
+      Clear area filter
+    </button>
+  </div>
+  <ul class="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2" data-super-map-results></ul>
+</div>
+
+<script>
+  import "leaflet-draw/dist/leaflet.draw.css";
+  import "leaflet-geosearch/dist/geosearch.css";
+  import "leaflet.markercluster/dist/MarkerCluster.css";
+  import "leaflet.markercluster/dist/MarkerCluster.Default.css";
+  import "leaflet/dist/leaflet.css";
+  import L from "leaflet";
+  import "leaflet.markercluster";
+  import "leaflet-draw";
+  import { GeoSearchControl, OpenStreetMapProvider } from "leaflet-geosearch";
+  import { isPointInPolygon, isPointInRadius } from "../lib/geo.js";
+
+  interface MarkerData {
+    id: string;
+    href: string;
+    title: string;
+    price: string;
+    lat: number;
+    lng: number;
+  }
+
+  function initSuperMap(el: HTMLElement) {
+    const markers: MarkerData[] = JSON.parse(el.dataset.markers ?? "[]");
+    const tileUrl = el.dataset.tileUrl ?? "";
+    const attribution = el.dataset.attribution ?? "";
+
+    const root = el.closest<HTMLElement>("[data-super-map-root]");
+    const countEl = root?.querySelector<HTMLElement>("[data-super-map-count]");
+    const resultsEl = root?.querySelector<HTMLElement>("[data-super-map-results]");
+    const clearButton = root?.querySelector<HTMLButtonElement>("[data-super-map-clear]");
+
+    const map = markers.length
+      ? L.map(el).fitBounds(
+          L.latLngBounds(markers.map((marker) => [marker.lat, marker.lng])),
+          { padding: [24, 24] },
+        )
+      : L.map(el).setView([0, 0], 2);
+    L.tileLayer(tileUrl, { attribution }).addTo(map);
+
+    const clusterGroup = L.markerClusterGroup();
+    const leafletMarkers = new Map<string, L.Marker>();
+    for (const marker of markers) {
+      const leafletMarker = L.marker([marker.lat, marker.lng]).bindPopup(
+        `<a href="${marker.href}">${marker.title}</a><br>${marker.price}`,
+      );
+      leafletMarkers.set(marker.id, leafletMarker);
+      clusterGroup.addLayer(leafletMarker);
+    }
+    map.addLayer(clusterGroup);
+
+    function render(matching: MarkerData[]) {
+      if (countEl) {
+        countEl.textContent = `${matching.length} of ${markers.length} listings shown`;
+      }
+      if (resultsEl) {
+        resultsEl.innerHTML = matching
+          .map(
+            (marker) =>
+              `<li class="rounded-lg border border-input p-2"><a href="${marker.href}">${marker.title}</a> — ${marker.price}</li>`,
+          )
+          .join("");
+      }
+      clusterGroup.clearLayers();
+      for (const marker of matching) {
+        const leafletMarker = leafletMarkers.get(marker.id);
+        if (leafletMarker) clusterGroup.addLayer(leafletMarker);
+      }
+      clearButton?.classList.toggle("hidden", matching.length === markers.length);
+    }
+
+    render(markers);
+
+    const drawnItems = new L.FeatureGroup();
+    map.addLayer(drawnItems);
+
+    const drawControl = new L.Control.Draw({
+      draw: {
+        polygon: {},
+        circle: {},
+        marker: false,
+        polyline: false,
+        rectangle: false,
+        circlemarker: false,
+      },
+      edit: { featureGroup: drawnItems, remove: false },
+    });
+    map.addControl(drawControl);
+
+    map.on(L.Draw.Event.CREATED, (event: L.LeafletEvent) => {
+      const created = event as L.DrawEvents.Created;
+      drawnItems.clearLayers();
+      drawnItems.addLayer(created.layer);
+
+      let matching: MarkerData[];
+      if (created.layerType === "circle") {
+        const circle = created.layer as L.Circle;
+        const center = circle.getLatLng();
+        const radiusKm = circle.getRadius() / 1000;
+        matching = markers.filter((marker) =>
+          isPointInRadius(
+            { lat: marker.lat, lng: marker.lng },
+            { lat: center.lat, lng: center.lng },
+            radiusKm,
+          ),
+        );
+      } else if (created.layerType === "polygon") {
+        const polygon = created.layer as L.Polygon;
+        const latlngs = (polygon.getLatLngs()[0] as L.LatLng[]).map((point) => ({
+          lat: point.lat,
+          lng: point.lng,
+        }));
+        matching = markers.filter((marker) =>
+          isPointInPolygon({ lat: marker.lat, lng: marker.lng }, latlngs),
+        );
+      } else {
+        matching = markers;
+      }
+
+      render(matching);
+    });
+
+    clearButton?.addEventListener("click", () => {
+      drawnItems.clearLayers();
+      render(markers);
+    });
+
+    map.addControl(
+      new GeoSearchControl({
+        provider: new OpenStreetMapProvider(),
+        style: "bar",
+        autoClose: true,
+        showMarker: false,
+      }),
+    );
+  }
+
+  for (const el of document.querySelectorAll<HTMLElement>("[data-super-map]")) {
+    if (el.dataset.mapInitialized) continue;
+    el.dataset.mapInitialized = "true";
+    initSuperMap(el);
+  }
+</script>

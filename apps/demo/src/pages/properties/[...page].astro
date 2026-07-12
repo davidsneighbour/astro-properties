@@ -61,6 +61,9 @@ const title =
 
 <ListingLayout title={title} listings={listings}>
   <Fragment slot="intro">
+    <p class="mb-3 text-sm">
+      <a href="/map/" class="underline">View all properties on the map</a>
+    </p>
     <SearchFilters
       client:load
       types={types}

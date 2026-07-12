@@ -27,6 +27,7 @@ These are implementation details chosen to keep moving — all are config values
 
 * **Default currency**: `USD`. **Default area unit**: `sqm`. Both configurable per-site (global default) with per-listing override, per the original doc's §10 recommendation.
 * **Default map provider**: OpenStreetMap raster tiles (free, no API key needed for a public demo). Swappable via `map-providers.ts` per the doc's §4 design.
+* **`SuperMap`'s location-autocomplete geocoder**: `leaflet-geosearch`'s `OpenStreetMapProvider` (Nominatim, free, no API key) — same "no key needed for a public demo" reasoning as the tile provider. Nominatim's usage policy caps request volume for production traffic; swap to a paid provider (`leaflet-geosearch` ships adapters for Google/Mapbox/HERE/etc.) before any real deployment with meaningful search volume.
 * **Coverage threshold**: starting at 80% lines/branches for new code, intended to ratchet up over time rather than being loosely enforced from day one.
 * **Node engines**: `>=22` for the theme package (Astro 7's own minimum), even though the `@dnbhq/*` tooling packages themselves declare `>=25` as their own dev requirement — consumers of the published theme shouldn't be forced onto a newer Node than Astro itself requires.
 * **shadcn style variant**: not yet chosen (New York vs Default) — cosmetic, tracked in `TODO.md`.
