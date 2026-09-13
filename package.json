@@ -31,7 +31,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
     "@dnbhq/biome-config": "0.2.3",
-    "@dnbhq/markdownlint-config": "0.2.8",
+    "@dnbhq/markdownlint-config": "0.2.11",
     "@dnbhq/tsconfig": "0.1.6",
     "typescript": "6.0.3"
   },
