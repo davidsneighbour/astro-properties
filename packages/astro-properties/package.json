@@ -51,7 +51,7 @@
     "leaflet-geosearch": "4.4.0",
     "leaflet.markercluster": "1.5.3",
     "smol-toml": "1.7.0",
-    "zod": "4.4.3"
+    "zod": "4.6.6"
   },
   "devDependencies": {
     "@dnbhq/release-config": "1.1.0",
