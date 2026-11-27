@@ -54,7 +54,7 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
-    "@dnbhq/release-config": "1.1.0",
+    "@dnbhq/release-config": "1.1.3",
     "@dnbhq/tsconfig": "0.1.6",
     "@release-it/conventional-changelog": "11.0.1",
     "@types/leaflet": "1.9.21",
